@@ -1,6 +1,8 @@
 #ifndef PID_H
 #define PID_H
 
+#include <vector>
+
 class PID {
 public:
   /*
@@ -9,13 +11,27 @@ public:
   double p_error;
   double i_error;
   double d_error;
+  double best_error;
+  double total_Error;
+
+  int numCycles;
+  int numCyclesCount;
+  int paramIndex;
+  bool twiddleInit;
+  bool twiddle;
+  int twiddleStage;
 
   /*
   * Coefficients
-  */ 
+  */
   double Kp;
   double Ki;
   double Kd;
+
+  std::vector<double> p;
+  std::vector<double> dp;
+
+  bool subTwiddleFlag;
 
   /*
   * Constructor
@@ -41,6 +57,11 @@ public:
   * Calculate the total PID error.
   */
   double TotalError();
+
+  void twiddleTune();
+
+  void transferParams();
+
 };
 
 #endif /* PID_H */

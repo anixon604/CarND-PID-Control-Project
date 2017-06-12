@@ -28,12 +28,28 @@ std::string hasData(std::string s) {
   return "";
 }
 
-int main()
+int main(int argc, char *argv[])
 {
   uWS::Hub h;
 
   PID pid;
   // TODO: Initialize the pid variable.
+  // Proportional term is for steering back to your intended point
+  // Integral term is for dealing with wheel alignment or bias
+  // Derivative term is for handling oscilation along the line
+  double init_Kp;
+  double init_Ki;
+  double init_Kd;
+  if(argc > 1) {
+    init_Kp = atof(argv[1]);
+    init_Ki = atof(argv[2]);
+    init_Kd = atof(argv[3]);
+  } else {
+    init_Kp = -0.24;
+    init_Ki = 0;
+    init_Kd = -1.2;
+  }
+  pid.Init(init_Kp, init_Ki, init_Kd);
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -57,8 +73,17 @@ int main()
           * NOTE: Feel free to play around with the throttle and speed. Maybe use
           * another PID controller to control the speed!
           */
-          
+          pid.UpdateError(cte);
+          steer_value = pid.TotalError();
+
           // DEBUG
+          std::cout << "K Values " << pid.Kp << " " << pid.Ki << " " << pid.Kd << std::endl;
+          std::cout << "p-vector " << pid.p[0] << " " << pid.p[1] << " " << pid.p[2] << std::endl;
+          std::cout << "dp-vector " << pid.dp[0] << " " << pid.dp[1] << " " << pid.dp[2] << std::endl;
+          std::cout << "paramIndex " << pid.paramIndex << " cycleCount " << pid.numCycles << std::endl;
+          std::cout << "twiddleStage " << pid.twiddleStage << std::endl;
+          //std::cout << pid.Dp << " " << pid.Di << " " << pid.Dd << std::endl;
+          std::cout << "best_error: " << pid.best_error << " INDEX " << std::endl;
           std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
 
           json msgJson;
