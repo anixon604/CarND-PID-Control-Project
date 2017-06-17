@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
   } else {
     init_Kp = -0.24;
     init_Ki = 0;
-    init_Kd = -1.2;
+    init_Kd = -1.4;
   }
   pid.Init(init_Kp, init_Ki, init_Kd);
 

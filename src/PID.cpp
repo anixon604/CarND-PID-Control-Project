@@ -18,14 +18,14 @@ void PID::Init(double Kp, double Ki, double Kd) {
   p.push_back(Ki);
   p.push_back(Kd);
 
-  dp.push_back(-0.02);
+  dp.push_back(-0.002);
   dp.push_back(0);
-  dp.push_back(-0.02);
+  dp.push_back(-0.002);
 
   transferParams();
 
   // max number of tunes before tuning next parameter
-  numCyclesCount = 25;
+  numCyclesCount = 10;
   numCycles = 0;
   // init flag
   twiddleInit = false;
@@ -48,10 +48,10 @@ void PID::UpdateError(double cte) {
 double PID::TotalError() {
   total_Error = Kp*p_error + Ki*i_error + Kd*d_error;
   if(!twiddleInit) {
-      best_error = total_Error;
+      best_error = pow(total_Error,2);
       twiddleInit = true;
   }
-  if(fabs(dp[0]+dp[1]+dp[2]) > 0.0001 && twiddle == true) twiddleTune();
+  if(fabs(dp[0]+dp[1]+dp[2]) > 0.2 && fabs(p_error) > 0.5 && twiddle == true) twiddleTune();
   return total_Error;
 }
 
@@ -61,7 +61,7 @@ void PID::twiddleTune() {
   numCycles++;
   if(numCycles == numCyclesCount) {
     paramIndex = (paramIndex+1) % 3;
-    best_error = total_Error;
+    best_error = pow(total_Error,2);
     numCycles = 0;
     twiddleStage = 0;
     //dp[paramIndex] = 1.1*dp[paramIndex]; // double the modifier
@@ -78,21 +78,20 @@ void PID::twiddleTune() {
       break;
     case 1:
       std::cout << "HERE IN STAGE ONE" << std::endl;
-      if (total_Error < best_error) {
-        best_error = total_Error;
+      if (pow(total_Error,2) < best_error) {
+        best_error = pow(total_Error,2);
         dp[paramIndex] *= 1.1;
         twiddleStage = 0;
       } else {
         p[paramIndex] -= 2*dp[paramIndex];
         transferParams();
         twiddleStage = 2;
-        break;
       }
       break;
     case 2:
       std::cout << "HERE IN STAGE TWO" << std::endl;
-      if (total_Error < best_error) {
-        best_error = total_Error;
+      if (pow(total_Error,2) < best_error) {
+        best_error = pow(total_Error,2);
         dp[paramIndex] *= 1.1;
       } else {
         p[paramIndex] += dp[paramIndex];
